@@ -242,7 +242,6 @@
       "  radius={8}",
       "  autoCap={true}",
       "  isPassword={false}",
-      "  isNum={false}",
       "  theme={theme}",
       "/>"
     ],
