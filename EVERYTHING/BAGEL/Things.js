@@ -1113,8 +1113,8 @@ export function TextFieldOne({
       onChangeText={onType}
       value={value}
       secureTextEntry={isPassword !== undefined ? isPassword : false}
-      autoCapitalize={autoCap !== undefined ? "sentences" : "none"}
-      keyboardType={isNum !== undefined ? "decimal-pad" : "default"}
+      autoCapitalize={autoCap !== undefined && autoCap ? "sentences" : "none"}
+      keyboardType={isNum !== undefined && isNum ? "decimal-pad" : "default"}
       style={[
         {
           paddingHorizontal: paddingH !== undefined ? paddingH : 14,
@@ -1212,7 +1212,7 @@ export function TextAreaOne({
       >
         <TextInput
           multiline={true}
-          autoCapitalize={autoCap !== undefined ? "sentences" : "none"}
+          autoCapitalize={autoCap !== undefined && autoCap ? "sentences" : "none"}
           placeholder={placeholder !== undefined ? placeholder : "Type here.."}
           placeholderTextColor={
             lightPlaceholderColor !== undefined &&
