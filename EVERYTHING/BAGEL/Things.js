@@ -276,7 +276,7 @@ export function Loading() {
           {
             flex: 1,
             height: height,
-            backgroundColor: "rgba(0,0,0,0.75)"
+            backgroundColor: "rgba(0,0,0,0.75)",
           },
         ]}
       >
@@ -1212,7 +1212,9 @@ export function TextAreaOne({
       >
         <TextInput
           multiline={true}
-          autoCapitalize={autoCap !== undefined && autoCap ? "sentences" : "none"}
+          autoCapitalize={
+            autoCap !== undefined && autoCap ? "sentences" : "none"
+          }
           placeholder={placeholder !== undefined ? placeholder : "Type here.."}
           placeholderTextColor={
             lightPlaceholderColor !== undefined &&
@@ -3483,58 +3485,25 @@ export function QRCodeView({ value, backgroundColor, color, size, theme }) {
     </View>
   );
 }
-export function QRReader({ func, theme }) {
-  const [permission, requestPermission] = Camera.useCameraPermissions();
-  const [scanning, setScanning] = useState(false);
-  const [qrValue, setQrValue] = useState(null);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      requestPermission();
-    })();
-  }, []);
-
-  const handleBarCodeScanned = ({ type, data }) => {
-    setScanning(false);
-    setQrValue(data);
-    if (func !== undefined) {
-      func(data);
-    } else {
-      Alert.alert(data);
-    }
-  };
+export function QRReader({ func, onClose, theme }) {
+  const [permission, requestPermission] = useCameraPermissions();
+  const [value, setValue] = useState("");
 
   if (!permission) {
-    // Camera permissions are still loading
+    // Camera permissions are still loading.
     return <View />;
   }
+
   if (!permission.granted) {
-    // Camera permissions are not granted yet
+    // Camera permissions are not granted yet.
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: themedBackgroundColor(theme),
-        }}
-      >
-        <TextView theme={theme}>
-          We need your permission to show the camera
-        </TextView>
-        <ButtonTwo borderColor={"#2F70D5"}>
-          <TextView theme={theme} styles={[sizes.small_text, colors.blue]}>
-            Grant Permission
-          </TextView>
-        </ButtonTwo>
-        <TouchableOpacity
-          onPress={() => {
-            requestPermission();
-            console.log("GRANTED");
-            // setToggle(true);
-          }}
-        ></TouchableOpacity>
+      <View style={[layout.separate_vertical]}>
+        <View>
+          <Text style={{ textAlign: "center" }}>
+            We need your permission to show the camera
+          </Text>
+          <Button onPress={requestPermission} title="grant camera permission" />
+        </View>
       </View>
     );
   }
@@ -3547,8 +3516,7 @@ export function QRReader({ func, theme }) {
         { top: 0, right: 0, left: 0, bottom: 0 },
       ]}
     >
-      {qrValue === null && (
-        <View
+      <View
           style={[
             backgrounds.black,
             layout.absolute,
@@ -3559,21 +3527,36 @@ export function QRReader({ func, theme }) {
           ]}
         >
           <View style={[layout.vertical]}>
-            <Text style={[colors.white, layout.padding_horizontal]}>
-              Scanning for QR Code...
-            </Text>
+            <SeparatedView>
+              <Text style={[colors.white, layout.padding_horizontal]}>
+                Scanning for QR Code...
+              </Text>
+              <View style={[layout.padding_horizontal]}>
+                <TouchableOpacity onPress={onClose}>
+                  <TextPill theme={theme} text={"close"} />
+                </TouchableOpacity>
+              </View>
+            </SeparatedView>
             <Camera
-              style={[{ width: width, height: "100%" }]}
-              type={Camera.Constants.Type.back}
-              onBarCodeScanned={handleBarCodeScanned}
+              facing="back"
+              style={{ width, height: "100%" }}
+              barcodeScannerSettings={["qr"]}
+              onBarcodeScanned={(res) => {
+                func(res.data);
+              }}
             />
           </View>
         </View>
-      )}
     </View>
   );
 }
-export function StripePaymentView({ children, total, currency, successFunc, theme }) {
+export function StripePaymentView({
+  children,
+  total,
+  currency,
+  successFunc,
+  theme,
+}) {
   const [pi, setPi] = useState("");
   const [stripeLoading, setStripeLoading] = useState(true);
   const { initPaymentSheet, presentPaymentSheet } = usePaymentSheet();
@@ -3740,7 +3723,7 @@ export function SmallBubble({
           {
             backgroundColor: secondaryThemedBackgroundColor(theme),
             paddingVertical: paddingV !== undefined ? paddingV : 8,
-            paddingHorizontal: paddingH !== undefined ? paddingH : 18,
+            paddingHorizontal: paddingH !== undefined ? paddingH : 14,
           },
           format.radius_full,
         ]}
@@ -3749,7 +3732,7 @@ export function SmallBubble({
           {icon !== undefined && (
             <Icon
               name={icon}
-              size={iconSize !== undefined ? iconSize : 18}
+              size={iconSize !== undefined ? iconSize : 24}
               theme={theme}
             />
           )}
@@ -3783,8 +3766,6 @@ export function OptionsView({ options, setToggle, theme }) {
             { backgroundColor: secondaryThemedBackgroundColor(theme) },
             format.radius,
             layout.margin_horizontal,
-            layout.center,
-            { width: "90%" },
           ]}
         >
           {/* OPTIONS HERE */}
@@ -3818,7 +3799,7 @@ export function OptionsView({ options, setToggle, theme }) {
                   />
                   <View>
                     <TextView
-                      size={18}
+                      size={15}
                       theme={theme}
                       color={
                         opt.Color !== undefined
@@ -3830,10 +3811,9 @@ export function OptionsView({ options, setToggle, theme }) {
                     </TextView>
                     {opt.Text !== undefined && (
                       <TextView
-                        size={14}
+                        size={13}
                         color={secondaryThemedTextColor(theme)}
                         theme={theme}
-                        styles={[{ width: "65%" }]}
                       >
                         {opt.Text}
                       </TextView>
@@ -3870,10 +3850,11 @@ export function OptionsView({ options, setToggle, theme }) {
 export function CalendarView({
   year,
   radius,
-  weekdays,
+  weekdays = [],
   isAllDays = true,
   includeToday = true,
   disabledFunc,
+  selectedFunc = undefined,
   func,
   theme,
 }) {
@@ -3927,12 +3908,7 @@ export function CalendarView({
                   const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ...
                   // HIGHLIGHTED TRUTH ************************************************
                   var isHighlighted = true;
-                  // TODAY
-                  if (includeToday && checkDate(new Date(), date)) {
-                    isHighlighted = true;
-                  } else if (!includeToday && checkDate(new Date(), date)) {
-                    isHighlighted = false;
-                  }
+
                   // WEEKDAYS
                   if (weekdays === undefined && weekdays.length === 0) {
                     isHighlighted = true;
@@ -3940,14 +3916,23 @@ export function CalendarView({
                   if (weekdays !== undefined && weekdays.length > 0) {
                     isHighlighted = weekdays.includes(dayOfWeek);
                   }
-                  // ALL DAYS
-                  if (!isAllDays && !compareDates(date, new Date())) {
-                    isHighlighted = false;
-                  }
                   // DISABLED FUNC
                   if (disabledFunc !== undefined) {
                     isHighlighted = disabledFunc(date);
                   }
+                  // TODAY
+                  if (includeToday && checkDate(new Date(), date)) {
+                    isHighlighted = true;
+                  } else if (!includeToday && checkDate(new Date(), date)) {
+                    isHighlighted = false;
+                  }
+                  // ALL DAYS
+                  if (!isAllDays && !compareDates(date, new Date())) {
+                    isHighlighted = false;
+                  }
+
+                  var isColored =
+                    selectedFunc !== undefined ? selectedFunc(date) : false;
 
                   //  #endregion
                   return (
@@ -3957,9 +3942,12 @@ export function CalendarView({
                       style={[
                         layout.padding,
                         {
-                          backgroundColor: isHighlighted
-                            ? secondaryThemedBackgroundColor(theme)
-                            : "transparent",
+                          backgroundColor:
+                            isHighlighted && isColored
+                              ? "#F27400"
+                              : isHighlighted && !isColored
+                              ? secondaryThemedBackgroundColor(theme)
+                              : "transparent",
                           borderRadius: radius !== undefined ? radius : 0,
                         },
                       ]}
@@ -4096,20 +4084,6 @@ export function removeDuplicatesByProperty(array, property) {
     } else {
       seen.add(value);
       return true;
-    }
-  });
-}
-export function replaceObjectByProperty(
-  array,
-  property,
-  propertyValue,
-  newObj
-) {
-  return array.map((obj) => {
-    if (obj[property] === propertyValue) {
-      return newObj;
-    } else {
-      return obj;
     }
   });
 }
@@ -4265,7 +4239,8 @@ export function checkTime(time, startTime, endTime) {
   return totalMinutes >= startTotalMinutes && totalMinutes <= endTotalMinutes;
 }
 export function getDaysOfMonth(monthNum, year) {
-  const daysInMonth = new Date(year, monthNum, 0).getDate();
+  // Correct the monthNum by adding 1
+  const daysInMonth = new Date(year, monthNum + 1, 0).getDate();
   return Array.from({ length: daysInMonth }, (_, i) => i + 1);
 }
 export function monthNumToLong(monthNum) {
@@ -4318,6 +4293,14 @@ export function getDayOfWeekName(dayNumber) {
     "Saturday",
   ];
   return daysOfWeek[dayNumber];
+}
+export function daysBetweenDates(date1, date2) {
+  const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+  const firstDate = new Date(date1);
+  const secondDate = new Date(date2);
+
+  const diffDays = Math.round(Math.abs((firstDate - secondDate) / oneDay));
+  return diffDays;
 }
 export function dateToHHMM(date) {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -6340,12 +6323,12 @@ export function shopify_GetOrders(accessToken, setOrders) {
     .then((response) => {
       const orders = response.data.orders;
       for (const order of orders) {
-        console.log('Order:');
+        console.log("Order:");
         Object.entries(order).forEach(([key, value]) => {
           console.log(`${key}: ${JSON.stringify(value)}`);
         });
       }
-      setOrders(orders)
+      setOrders(orders);
     })
     .catch((error) => {
       console.error("Error fetching orders:", error);
