@@ -23,7 +23,7 @@ import {
 import * as Linking from "expo-linking";
 import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, CameraType } from "expo-camera";
+import { Camera } from "expo-camera";
 import { Ionicons } from "react-native-vector-icons";
 import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
@@ -770,6 +770,17 @@ export function SideBySide({ children, gap }) {
 export function SeparatedView({ children }) {
   return (
     <View style={[layout.separate_horizontal, { gap: 10 }]}>{children}</View>
+  );
+}
+export function PageView({ children }) {
+  return (
+    <PagerView style={styles.pagerView} initialPage={0}>
+      {React.Children.map(children, (child, index) => (
+        <View key={index} style={styles.page}>
+          {child}
+        </View>
+      ))}
+    </PagerView>
   );
 }
 
@@ -3517,36 +3528,36 @@ export function QRReader({ func, onClose, theme }) {
       ]}
     >
       <View
-          style={[
-            backgrounds.black,
-            layout.absolute,
-            { top: 30, right: 0, left: 0, bottom: 0 },
-            layout.full_height,
-            layout.full_width,
-            layout.padding_vertical,
-          ]}
-        >
-          <View style={[layout.vertical]}>
-            <SeparatedView>
-              <Text style={[colors.white, layout.padding_horizontal]}>
-                Scanning for QR Code...
-              </Text>
-              <View style={[layout.padding_horizontal]}>
-                <TouchableOpacity onPress={onClose}>
-                  <TextPill theme={theme} text={"close"} />
-                </TouchableOpacity>
-              </View>
-            </SeparatedView>
-            <Camera
-              facing="back"
-              style={{ width, height: "100%" }}
-              barcodeScannerSettings={["qr"]}
-              onBarcodeScanned={(res) => {
-                func(res.data);
-              }}
-            />
-          </View>
+        style={[
+          backgrounds.black,
+          layout.absolute,
+          { top: 30, right: 0, left: 0, bottom: 0 },
+          layout.full_height,
+          layout.full_width,
+          layout.padding_vertical,
+        ]}
+      >
+        <View style={[layout.vertical]}>
+          <SeparatedView>
+            <Text style={[colors.white, layout.padding_horizontal]}>
+              Scanning for QR Code...
+            </Text>
+            <View style={[layout.padding_horizontal]}>
+              <TouchableOpacity onPress={onClose}>
+                <TextPill theme={theme} text={"close"} />
+              </TouchableOpacity>
+            </View>
+          </SeparatedView>
+          <Camera
+            facing="back"
+            style={{ width, height: "100%" }}
+            barcodeScannerSettings={["qr"]}
+            onBarcodeScanned={(res) => {
+              func(res.data);
+            }}
+          />
         </View>
+      </View>
     </View>
   );
 }

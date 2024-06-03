@@ -1,4 +1,12 @@
-import { Alert, Button, Image, Linking, Pressable, Text, View } from "react-native";
+import {
+  Alert,
+  Button,
+  Image,
+  Linking,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import {
   Accordion,
   AsyncImage,
@@ -118,6 +126,7 @@ import {
   getDistanceInMiles,
   getFirstDateOfMonth,
   getInDevice,
+  getIndividualPages,
   height,
   layout,
   monthLongtoNum,
@@ -171,15 +180,27 @@ function Test({ navigation, route }) {
   const [thing, setThing] = useState("");
   const [toggle, setToggle] = useState(true);
   const [theme, setTheme] = useState("light");
+  const [pages, setPages] = useState([]);
 
   useEffect(() => {
     setInDevice("theme", "light");
     getInDevice("theme", setTheme);
+    getIndividualPages("https://firebasestorage.googleapis.com/v0/b/iic-appline-template.appspot.com/o/PDF%2Fvolume1.pdf?alt=media&token=f0198923-408b-458a-862e-2461b010b6c7", setPages)
   }, []);
 
   return (
     <SafeArea loading={loading} theme={theme}>
-      
+      <View>
+        {pages.map((page, i) => {
+          return (
+            <Image
+              key={i}
+              source={{ uri: page }}
+              style={[{ width: "100%", height: height * 0.8 }]}
+            />
+          );
+        })}
+      </View>
     </SafeArea>
   );
 }
